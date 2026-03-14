@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 const project = {
   name: "RFID Access Control System",
   tagline: "Build an Arduino-based door lock with RFID auth + serial access logging",
