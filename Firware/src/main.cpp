@@ -1,153 +1,60 @@
-#include <MFRC522.h>
-#include <SPI.h>
+#include <Arduino.h>
+#include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-// ANSWERS TO YOUR QUESTIONS:
-// #define vs const? 
-// - #define: preprocessor directive, replaced at compile time, no type checking
-// - const: actual variable with type checking, takes memory, safer
-// 
-// What defines baud rate?
-// - Serial.begin(115200) in setup() defines the baud rate
-// - Must match monitor_speed in platformio.ini
-
-const int redled = 26;
-const int greenled = 33;
-
-String pswd = "";
-String guessed = "";
-bool pswdset = false;
-
-const int sda = 13;
-const int scl = 12;
-
-const int sck = 18;   // ESP32 default SPI clock
-const int miso = 19;  // ESP32 default SPI MISO
-const int mosi = 23;  // ESP32 default SPI MOSI
-const int ss = 5;     // ESP32 default SPI CS
-const int rst = 22;   // RFID reset pin
-
-MFRC522 rfid(ss, rst);
+// OLED
+const int sda = 21;
+const int scl = 22;
 Adafruit_SSD1306 oled(128, 64, &Wire, -1);
 
-void clearDisplay() {
-  oled.clearDisplay();
-  oled.setCursor(0, 0);  // Reset cursor to top-left
-}
+// LED
+const int greenled = 27;
 
-void blinkled(int pin) {
-  for (int i = 0; i < 4; i++) {
-    digitalWrite(pin, HIGH);
-    delay(200);
-    digitalWrite(pin, LOW);
-    delay(200);
-  }
-}
-
-void displayAndSerial(String message) {
-  Serial.println(message);
-  clearDisplay();
-  oled.setTextSize(1);
-  oled.setTextColor(SSD1306_WHITE);
-  oled.println(message);
-  oled.display();  // IMPORTANT: Render to screen
-  delay(500);
-}
-void waitForSerial(unsigned long timeout = 10000) {
-  unsigned long start = millis();
-  while (Serial.available() == 0 && millis() - start < timeout) {}
-  delay(500);
-}
 void setup() {
   Serial.begin(115200);
-  delay(10000);  // Give serial time to initialize
-  
-  // Initialize I2C pins (optional for most boards)
-  Wire.begin(sda, scl);
-  
-  // Initialize OLED (ONLY ONCE)
-  if (!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;);  // Loop forever if OLED fails
-  }
-  
-  // Initialize SPI for RFID
-  SPI.begin(sck, miso, mosi, ss);
-  rfid.PCD_Init();
-  delay(10000);
-  displayAndSerial("Starting....");
-  
-  
-  displayAndSerial("Hello, ESP32!");
-  
-  // displayAndSerial("Set a 4-digit binary password:");
-  
-  // waitForSerial(10000);  // Wait max 10 seconds
-  // delay(500);
-  // pswd = Serial.readStringUntil('\n');
-  // pswd.trim();
-  
-  // displayAndSerial("Password set!");
-  // delay(1000);
-  
-  // displayAndSerial("Enter binary password:");
-  
-  // waitForSerial(10000);  // Wait max 10 seconds
-  // delay(500);
-  // guessed = Serial.readStringUntil('\n');
-  // guessed.trim();
-  
-  // LED PINMODES
-  pinMode(redled, OUTPUT);
+
+  // LED setup
   pinMode(greenled, OUTPUT);
-  digitalWrite(redled, HIGH);
+  digitalWrite(greenled, LOW);
+
+  // OLED setup
+  Wire.begin(sda, scl);
+  if (!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("SSD1306 allocation failed");
+    for (;;);
+  }
+
+  // Show welcome message
+  oled.clearDisplay();
+  oled.setTextSize(2);
+  oled.setTextColor(SSD1306_WHITE);
+  oled.setCursor(15, 10);
+  oled.println("Welcome!");
+  oled.setTextSize(1);
+  oled.setCursor(20, 40);
+  oled.println("Initializing...");
+  oled.display();
+
+  delay(2000);
+
+  // Flash green LED 3 times
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(greenled, HIGH);
+    delay(1000);
+    digitalWrite(greenled, LOW);
+    delay(1000);
+  }
+
+  // Update OLED after flashing
+  oled.clearDisplay();
+  oled.setTextSize(2);
+  oled.setTextColor(SSD1306_WHITE);
+  oled.setCursor(25, 25);
+  oled.println("Ready!");
+  oled.display();
 }
 
 void loop() {
-  digitalWrite(redled, HIGH);
-
-  if (pswdset == false) {
-    displayAndSerial("Set a 4-digit binary password:");
-    while (Serial.available() == 0) {}
-    pswd = Serial.readStringUntil('\n');
-    pswd.trim();
-    pswdset = true;
-    displayAndSerial("Password set!");
-    delay(1000);
-    displayAndSerial("Enter binary password:");
-    while (Serial.available() == 0) {}
-    guessed = Serial.readStringUntil('\n');
-    guessed.trim();
-  }
-  
-  while (guessed != pswd) {
-    blinkled(redled);
-    displayAndSerial("Access Denied - Try Again");
-    delay(1000);
-    
-    displayAndSerial("Enter binary password:");
-    
-    while (Serial.available() == 0) {}
-    delay(500);
-    
-    guessed = Serial.readStringUntil('\n');
-    guessed.trim();
-  }
-  
-  displayAndSerial("Access Granted. Welcome!");
-  digitalWrite(redled, LOW);
-  
-  blinkled(greenled);
-  digitalWrite(greenled, HIGH);
-  
-  // pswd = "";
-  guessed = "";  // Reset for next round
-  delay(3000);
-  
-  // displayAndSerial("Enter binary password:");
-  // while (Serial.available() == 0) {}
-  // delay(500);
-  // guessed = Serial.readStringUntil('\n');
-  // guessed.trim();
+  // Nothing here
 }
