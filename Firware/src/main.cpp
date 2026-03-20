@@ -25,6 +25,7 @@ void AccessGranted();
 
 const int redled = 26;
 const int greenled = 21;
+const int BUZZ_PIN = 15;
 
 String pswd ;
 String guessed = "";
@@ -70,7 +71,7 @@ bool cardInacl()
   {
       if (ACL[i] == cardID) 
       {
-        displayAndSerial("Card already in ACL");
+        //displayAndSerial("Card already in ACL");
         return true;
       }
 
@@ -90,22 +91,26 @@ void lookinforcard() //loops untill a card is found, if card is found prints to 
         cardID += String(rfid.uid.uidByte[i], HEX);
       }
       cardID.toUpperCase();
-      //displayAndSerial("Card Detected with UID: " + cardID);
+      Serial.print("UID: " + cardID);
       break; // out of while loop
     }
     
     Serial.println();
-    displayAndSerial("No Card Detected - Please Tap Your Card");
+    //displayAndSerial("No Card Detected - Please Tap Your Card");
     //delay(1000);
   }
 
   rfid.PICC_HaltA(); // this closed the reader's connection to the card, so we can read another card after this
-  delay(1000);  
 
 }
 
 void AccessDenied()
 {
+  tone(BUZZ_PIN, 1000, 500);   // 1kHz for 150ms
+  delay(200);
+  tone(BUZZ_PIN, 1800, 500);
+  delay(200);
+  tone(BUZZ_PIN, 1800, 500);
   blinkled(redled);
   displayAndSerial("Access Denied");
   //digitalWrite(redled, HIGH);
@@ -114,6 +119,7 @@ void AccessDenied()
 
 void AccessGranted()
 {
+  tone(BUZZ_PIN, 300, 1000);
   blinkled(greenled);
   displayAndSerial("Access Granted");
   //digitalWrite(greenled, HIGH);
@@ -121,6 +127,7 @@ void AccessGranted()
   //digitalWrite(greenled, LOW);
 }
 void AccessControl() {
+  displayAndSerial("Tap card");
   lookinforcard();
   // if card is in ACL, grant access, else deny access
 
@@ -130,7 +137,7 @@ void AccessControl() {
   } else {
     AccessDenied();
 
-    displayAndSerial("Would you like to add this card to the Access Control List? (y/n)");
+    displayAndSerial("Add to Access Control List? (y/n)");
     while (Serial.available() == 0) {}
     waitForSerial();
     String response = Serial.readStringUntil('\n');
@@ -248,7 +255,7 @@ void blinkled(int pin) {
 void displayAndSerial(String message) {
   Serial.println(message);
   clearDisplay();
-  oled.setTextSize(1.5); // can i set as decimal? 
+  oled.setTextSize(2); // can i set as decimal? no
   // how to center alll texts? 
   int16_t x1, y1;
   uint16_t w, h;
@@ -258,7 +265,7 @@ void displayAndSerial(String message) {
   oled.setTextColor(SSD1306_WHITE);
   oled.println(message);
   oled.display();  //render to screen
-  delay(2000);
+  delay(1500);
 }
 void waitForSerial(unsigned long timeout) {
   unsigned long start = millis();
@@ -294,6 +301,7 @@ void setup() {
   // LED PINMODES
   pinMode(redled, OUTPUT);
   pinMode(greenled, OUTPUT);
+  pinMode(BUZZ_PIN, OUTPUT);
   //digitalWrite(redled, HIGH);
 }
 
