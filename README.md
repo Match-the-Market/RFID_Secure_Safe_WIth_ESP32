@@ -11,6 +11,7 @@ This is an active prototype. The core firmware flow is implemented and running, 
 - ESP32 + MFRC522 RFID reader integration
 - SSD1306 OLED status messages
 - Red/green LED feedback for deny/grant states
+- Buzzer for for audio signaling
 - First-run admin password setup over Serial
 - In-memory Access Control List (ACL) of RFID UIDs
 - Unknown card enrollment flow gated by admin password
@@ -25,11 +26,12 @@ This is an active prototype. The core firmware flow is implemented and running, 
 
 ## Hardware Used
 
-- ESP32 DevKit V1 (PlatformIO board: `esp32doit-devkit-v1`)
+- ESP32 DevKit V1 
 - MFRC522 RFID module
-- SSD1306 128x64 OLED (I2C, address `0x3C`)
+- SSD1306 128x64 OLED (I2C)
 - 1x red LED
 - 1x green LED
+- 1x passive buzzer
 
 ## Pin Mapping (Current Firmware)
 
@@ -42,12 +44,13 @@ This is an active prototype. The core firmware flow is implemented and running, 
 - RFID RST: `GPIO4`
 - Red LED: `GPIO26`
 - Green LED: `GPIO21`
+- Buzzer: `GPIO15`
 
 ## Software Stack
 
 - PlatformIO + Arduino framework
 - Main firmware: `Firware/src/main.cpp`
-- Key dependencies:
+- Key libraries:
 	- `MFRC522`
 	- `Adafruit SSD1306`
 	- `Adafruit GFX`
