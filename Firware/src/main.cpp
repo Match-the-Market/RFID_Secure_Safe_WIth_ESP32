@@ -84,12 +84,13 @@ void lookinforcard() //loops untill a card is found, if card is found prints to 
   while (true){
     if ( rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) // loop ag
     {
+      cardID = "";
       for (byte i = 0; i < rfid.uid.size; i++) 
       {
         cardID += String(rfid.uid.uidByte[i], HEX);
       }
       cardID.toUpperCase();
-      displayAndSerial("Card Detected with UID: " + cardID);
+      //displayAndSerial("Card Detected with UID: " + cardID);
       break; // out of while loop
     }
     
